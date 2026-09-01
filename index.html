@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Quiz interativo para praticar conteúdos de Cálculo 1."
+    />
+    <title>Cálculo em prática | Quiz de Cálculo 1</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="." aria-label="Cálculo em prática, início">
+          <span class="brand-mark" aria-hidden="true">∫</span>
+          <span>
+            <strong>Cálculo em prática</strong>
+            <small>Estudo individual</small>
+          </span>
+        </a>
+
+        <button
+          class="theme-toggle"
+          id="theme-toggle"
+          type="button"
+          aria-pressed="false"
+          aria-label="Ativar tema escuro"
+        >
+          <span class="theme-glyph" aria-hidden="true">◐</span>
+          <span id="theme-label">Tema escuro</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <p class="eyebrow">CÁLCULO I</p>
+            <h1 id="page-title">Treine o raciocínio. Uma questão por vez.</h1>
+            <p class="hero-description">
+              Um quiz rápido para revisar funções, limites e continuidade com base nas listas da disciplina.
+            </p>
+            <div class="hero-stats" aria-label="Resumo do quiz">
+              <span><strong id="hero-question-count">8</strong> questões</span>
+              <span><strong>4</strong> tópicos</span>
+              <span><strong id="hero-best-score">Ainda não há</strong> melhor resultado</span>
+            </div>
+          </div>
+          <div class="hero-equation" aria-hidden="true">
+            <span>lim</span>
+            <small>x → a</small>
+            <strong>f(x)</strong>
+            <i>+</i>
+            <span>f′(x)</span>
+          </div>
+        </section>
+
+        <section class="topic-section" aria-labelledby="topic-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Escolha o foco</p>
+              <h2 id="topic-title">Pratique do seu jeito</h2>
+            </div>
+            <p class="section-note">A seleção reinicia a rodada com questões do tema escolhido.</p>
+          </div>
+
+          <nav class="topic-tabs" id="topic-tabs" aria-label="Filtrar questões por tópico">
+            <button class="topic-tab is-active" type="button" data-topic="all" aria-pressed="true">Todos os tópicos</button>
+            <button class="topic-tab" type="button" data-topic="funcao" aria-pressed="false">Função</button>
+            <button class="topic-tab" type="button" data-topic="limites" aria-pressed="false">Limites</button>
+            <button class="topic-tab" type="button" data-topic="continuidade" aria-pressed="false">Continuidade</button>
+          </nav>
+        </section>
+
+        <div class="quiz-layout">
+          <section class="quiz-stage" id="quiz-stage" aria-labelledby="round-title">
+            <div class="stage-header">
+              <div>
+                <p class="section-label">Rodada atual</p>
+                <h2 id="round-title">Todos os tópicos</h2>
+              </div>
+              <div class="score-chip" aria-label="Pontuação atual">
+                <span class="score-chip-label">Pontos</span>
+                <strong id="score-value">0</strong>
+              </div>
+            </div>
+
+            <article class="question-card" id="question-card" aria-labelledby="question-text">
+              <div class="question-meta">
+                <span id="question-number">Questão 1 de 8</span>
+                <span class="topic-badge" id="question-topic">Função</span>
+              </div>
+              <h3 id="question-text">Carregando questão...</h3>
+              <p class="formula" id="question-formula" hidden></p>
+              <div class="options" id="options" role="group" aria-label="Alternativas"></div>
+
+              <div class="feedback" id="feedback" role="status" aria-live="polite" hidden>
+                <strong id="feedback-title"></strong>
+                <p id="feedback-text"></p>
+              </div>
+
+              <div class="question-footer">
+                <p id="helper-copy">Selecione uma alternativa para conferir seu raciocínio.</p>
+                <button class="primary-button" id="next-button" type="button" disabled>Próxima questão</button>
+              </div>
+            </article>
+          </section>
+
+          <aside class="progress-panel" id="progress-panel" aria-labelledby="progress-title">
+            <div class="progress-panel-header">
+              <div>
+                <p class="section-label">Seu avanço</p>
+                <h2 id="progress-title">Nesta rodada</h2>
+              </div>
+              <span class="progress-percent" id="progress-percent">0%</span>
+            </div>
+
+            <div class="progress-meter" role="progressbar" aria-label="Progresso do quiz" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">
+              <span id="progress-fill"></span>
+            </div>
+
+            <div class="metric-row">
+              <span>Respondidas</span>
+              <strong id="answered-count">0 / 8</strong>
+            </div>
+            <div class="metric-row">
+              <span>Melhor resultado</span>
+              <strong id="best-score">Ainda não há</strong>
+            </div>
+
+            <div class="panel-divider"></div>
+
+            <div class="topic-summary">
+              <h3>Conteúdo da rodada</h3>
+              <div id="topic-breakdown"></div>
+            </div>
+
+            <ol class="question-list" id="question-list" aria-label="Lista de questões"></ol>
+          </aside>
+        </div>
+
+        <section class="result-panel" id="result-panel" aria-labelledby="result-title" tabindex="-1" hidden>
+          <div class="result-intro">
+            <p class="eyebrow">RODADA CONCLUÍDA</p>
+            <h2 id="result-title">Seu resultado está pronto.</h2>
+            <p id="result-message">Continue praticando para consolidar os conceitos.</p>
+          </div>
+          <div class="result-score">
+            <span>Você acertou</span>
+            <strong id="result-score-value">0 / 8</strong>
+            <small id="result-percent">0% de aproveitamento</small>
+          </div>
+          <div class="result-content">
+            <div class="result-best">
+              <span>Melhor resultado</span>
+              <strong id="result-best-score">Ainda não há</strong>
+            </div>
+            <div class="result-breakdown" id="result-breakdown"></div>
+          </div>
+          <button class="primary-button" id="restart-button" type="button">Tentar novamente</button>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Quiz de Cálculo 1</span>
+        <span>Pratique, revise, avance.</span>
+      </footer>
+    </div>
+  </body>
+</html>
