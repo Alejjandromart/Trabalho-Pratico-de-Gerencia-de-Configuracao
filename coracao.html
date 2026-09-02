@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Página interativa com um coração pulsação 3D, partículas luminosas, som de batimentos cardíacos e mensagem personalizável.">
+  <title>Coração Interativo | Animação Radiante em Canvas</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at center, #1b0714 0%, #080206 70%, #000000 100%);
+      --primary-color: #ff2a6d;
+      --secondary-color: #ff758c;
+      --glow-color: rgba(255, 42, 109, 0.7);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+      --text-main: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Themes */
+    [data-theme="cyber"] {
+      --primary-color: #00f0ff;
+      --secondary-color: #ff007f;
+      --glow-color: rgba(0, 240, 255, 0.7);
+      --bg-gradient: radial-gradient(circle at center, #091224 0%, #030611 70%, #000000 100%);
+    }
+
+    [data-theme="purple"] {
+      --primary-color: #b537f2;
+      --secondary-color: #ea5455;
+      --glow-color: rgba(181, 55, 242, 0.7);
+      --bg-gradient: radial-gradient(circle at center, #18052b 0%, #090214 70%, #000000 100%);
+    }
+
+    [data-theme="gold"] {
+      --primary-color: #ffb703;
+      --secondary-color: #fb8500;
+      --glow-color: rgba(255, 183, 3, 0.7);
+      --bg-gradient: radial-gradient(circle at center, #241903 0%, #0e0901 70%, #000000 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      transition: background 0.8s ease;
+    }
+
+    /* Canvas background */
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* UI Overlay Layer */
+    .ui-layer {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem;
+    }
+
+    .interactive-element {
+      pointer-events: auto;
+    }
+
+    /* Header Bar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .brand-tag {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      padding: 0.6rem 1.2rem;
+      border-radius: 50px;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .brand-icon {
+      font-size: 1.4rem;
+      animation: heartbeat-small 1.2s infinite ease-in-out;
+      display: inline-block;
+    }
+
+    .brand-title {
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #fff 0%, var(--secondary-color) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .icon-btn {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--primary-color);
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 0 15px var(--glow-color);
+    }
+
+    .icon-btn:active {
+      transform: translateY(0) scale(0.95);
+    }
+
+    .icon-btn.active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 20px var(--glow-color);
+    }
+
+    /* Central Message Card */
+    .message-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      max-width: 90%;
+      width: 500px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .message-card {
+      background: rgba(15, 7, 15, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      transition: all 0.5s ease;
+      opacity: 0.95;
+    }
+
+    .message-card:hover {
+      border-color: var(--glass-border);
+      background: rgba(20, 8, 20, 0.55);
+    }
+
+    .custom-heading {
+      font-family: 'Dancing Script', cursive;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--primary-color);
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .custom-subtext {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      letter-spacing: 0.5px;
+      margin-top: 0.5rem;
+    }
+
+    .edit-hint {
+      margin-top: 1.2rem;
+      display: inline-block;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+      pointer-events: auto;
+    }
+
+    .edit-hint:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: var(--primary-color);
+      color: #fff;
+      transform: scale(1.03);
+    }
+
+    /* Bottom Control Bar */
+    footer {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .control-panel {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      box-shadow: var(--glass-shadow);
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .control-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .bpm-display {
+      font-weight: 700;
+      color: var(--primary-color);
+      min-width: 60px;
+    }
+
+    /* Custom Range Slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 110px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--glow-color);
+      transition: transform 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Color Swatches */
+    .theme-swatches {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .swatch:hover {
+      transform: scale(1.15);
+    }
+
+    .swatch.selected {
+      border-color: #ffffff;
+      box-shadow: 0 0 10px var(--glow-color);
+      transform: scale(1.15);
+    }
+
+    .swatch-red { background: linear-gradient(135deg, #ff2a6d, #990033); }
+    .swatch-cyber { background: linear-gradient(135deg, #00f0ff, #ff007f); }
+    .swatch-purple { background: linear-gradient(135deg, #b537f2, #4a00e0); }
+    .swatch-gold { background: linear-gradient(135deg, #ffb703, #fb8500); }
+
+    /* Modal dialog */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #140814;
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 440px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+      transform: translateY(20px);
+      transition: transform 0.4s ease;
+    }
+
+    .modal-overlay.open .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 10px var(--glow-color);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.65rem 1.4rem;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: #fff;
+      box-shadow: 0 0 15px var(--glow-color);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px var(--glow-color);
+    }
+
+    /* Keyframes */
+    @keyframes heartbeat-small {
+      0%, 100% { transform: scale(1); }
+      15% { transform: scale(1.25); }
+      30% { transform: scale(1.05); }
+      45% { transform: scale(1.15); }
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 600px) {
+      .custom-heading {
+        font-size: 2.2rem;
+      }
+      .custom-subtext {
+        font-size: 0.95rem;
+      }
+      .control-panel {
+        padding: 0.6rem 1rem;
+        gap: 1rem;
+      }
+      .bpm-text-hide {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body data-theme="red">
+
+  <!-- Background Interactive Canvas -->
+  <div id="canvas-container">
+    <canvas id="heart-canvas"></canvas>
+  </div>
+
+  <!-- UI Overlay -->
+  <div class="ui-layer">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="brand-tag interactive-element">
+        <span class="brand-icon" aria-hidden="true">❤️</span>
+        <span class="brand-title">Coração Visto em Código</span>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-btn interactive-element" id="audio-toggle" title="Ativar/Desativar Som do Coração" aria-label="Alternar áudio de batimentos">
+          <span id="audio-icon">🔇</span>
+        </button>
+        <button class="icon-btn interactive-element" id="fullscreen-toggle" title="Tela Cheia" aria-label="Alternar tela cheia">
+          <span>⛶</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Central Floating Message -->
+    <main class="message-container">
+      <div class="message-card">
+        <h1 class="custom-heading" id="card-heading">Você faz meu coração bater mais forte</h1>
+        <p class="custom-subtext" id="card-subtext">Clique em qualquer lugar da tela para criar faíscas de amor ❤️</p>
+        <button class="edit-hint interactive-element" id="open-modal-btn">✏️ Personalizar Mensagem</button>
+      </div>
+    </main>
+
+    <!-- Bottom Controls -->
+    <footer>
+      <div class="control-panel interactive-element">
+        
+        <!-- BPM Control -->
+        <div class="control-group">
+          <label for="bpm-slider">
+            <span>💓</span>
+            <span class="bpm-text-hide">Ritmo:</span>
+          </label>
+          <input type="range" id="bpm-slider" min="40" max="160" value="75" step="1" aria-label="Frequência de batimentos por minuto">
+          <span class="bpm-display" id="bpm-value">75 BPM</span>
+        </div>
+
+        <!-- Color Selector -->
+        <div class="control-group">
+          <span class="bpm-text-hide">Tema:</span>
+          <div class="theme-swatches" id="theme-selector" role="radiogroup" aria-label="Seleção de cores de fundo e coração">
+            <div class="swatch swatch-red selected" data-theme="red" role="radio" aria-checked="true" title="Amor Clássico (Vermelho)"></div>
+            <div class="swatch swatch-cyber" data-theme="cyber" role="radio" aria-checked="false" title="Neon Cyber (Ciano & Rosa)"></div>
+            <div class="swatch swatch-purple" data-theme="purple" role="radio" aria-checked="false" title="Paixão Violeta (Roxo)"></div>
+            <div class="swatch swatch-gold" data-theme="gold" role="radio" aria-checked="false" title="Fogo Dourado (Amarelo)"></div>
+          </div>
+        </div>
+
+      </div>
+    </footer>
+  </div>
+
+  <!-- Edit Message Modal -->
+  <div class="modal-overlay" id="modal-overlay" aria-hidden="true" role="dialog">
+    <div class="modal-card">
+      <h2 class="modal-title"><span>💌</span> Personalizar Mensagem</h2>
+      
+      <div class="form-group">
+        <label for="input-heading">Título Principal</label>
+        <input type="text" id="input-heading" maxlength="60" value="Você faz meu coração bater mais forte">
+      </div>
+
+      <div class="form-group">
+        <label for="input-subtext">Subtítulo / Dedicatória</label>
+        <textarea id="input-subtext" rows="3" maxlength="140">Clique em qualquer lugar da tela para criar faíscas de amor ❤️</textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="close-modal-btn">Cancelar</button>
+        <button class="btn btn-primary" id="save-modal-btn">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Canvas & Context Setup
+    const canvas = document.getElementById('heart-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initHeartPoints();
+    });
+
+    // App State
+    let bpm = 75;
+    let theme = 'red';
+    let audioEnabled = false;
+    let audioCtx = null;
+
+    // Theme Color Palettes for Canvas Particles
+    const themePalettes = {
+      red: {
+        primary: '#ff2a6d',
+        secondary: '#ff758c',
+        glow: 'rgba(255, 42, 109, ',
+        accent: '#ffffff'
+      },
+      cyber: {
+        primary: '#00f0ff',
+        secondary: '#ff007f',
+        glow: 'rgba(0, 240, 255, ',
+        accent: '#00ffaa'
+      },
+      purple: {
+        primary: '#b537f2',
+        secondary: '#ea5455',
+        glow: 'rgba(181, 55, 242, ',
+        accent: '#f700ff'
+      },
+      gold: {
+        primary: '#ffb703',
+        secondary: '#fb8500',
+        glow: 'rgba(255, 183, 3, ',
+        accent: '#fff5c0'
+      }
+    };
+
+    // Heart Math Curve: Parametric equations
+    // x = 16 sin^3(t)
+    // y = -(13 cos(t) - 5 cos(2t) - 2 cos(3t) - cos(4t))
+    function getHeartPosition(t) {
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+      return { x, y };
+    }
+
+    // Main Heart Particles
+    let heartParticles = [];
+    const TOTAL_HEART_PARTICLES = 1800;
+
+    function initHeartPoints() {
+      heartParticles = [];
+      const scaleBase = Math.min(width, height) / 45;
+
+      for (let i = 0; i < TOTAL_HEART_PARTICLES; i++) {
+        // Random parameter t along heart shape
+        const t = Math.random() * Math.PI * 2;
+        const pos = getHeartPosition(t);
+
+        // Add volume inside the heart by random distribution
+        const fillFactor = Math.pow(Math.random(), 0.5); // Density gradient towards edge
+        const px = pos.x * scaleBase * fillFactor;
+        const py = pos.y * scaleBase * fillFactor;
+
+        // Base velocity offset for fluid motion
+        const vx = (Math.random() - 0.5) * 0.8;
+        const vy = (Math.random() - 0.5) * 0.8;
+
+        heartParticles.push({
+          baseX: px,
+          baseY: py,
+          x: px,
+          y: py,
+          vx: vx,
+          vy: vy,
+          size: Math.random() * 2.2 + 0.8,
+          alpha: Math.random() * 0.7 + 0.3,
+          t: t,
+          fillFactor: fillFactor,
+          speed: Math.random() * 0.04 + 0.01
+        });
+      }
+    }
+
+    initHeartPoints();
+
+    // Floating Background Particles & Sparkles
+    let bgParticles = [];
+    const TOTAL_BG_PARTICLES = 90;
+
+    for (let i = 0; i < TOTAL_BG_PARTICLES; i++) {
+      bgParticles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: -Math.random() * 0.8 - 0.2, // Float upwards
+        size: Math.random() * 3 + 1,
+        alpha: Math.random() * 0.5 + 0.1,
+        life: Math.random() * 100
+      });
+    }
+
+    // Mouse Interaction Explosion Particles
+    let burstParticles = [];
+
+    window.addEventListener('click', (e) => {
+      // Don't spawn burst if clicking interactive UI elements
+      if (e.target.closest('.interactive-element') || e.target.closest('.modal-card')) return;
+
+      const clickX = e.clientX - width / 2;
+      const clickY = e.clientY - height / 2;
+
+      for (let i = 0; i < 35; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 6 + 2;
+        burstParticles.push({
+          x: clickX,
+          y: clickY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 4 + 2,
+          alpha: 1.0,
+          decay: Math.random() * 0.02 + 0.015,
+          color: Math.random() > 0.3 ? themePalettes[theme].primary : themePalettes[theme].secondary
+        });
+      }
+
+      // Play subtle pulse audio on click if enabled
+      if (audioEnabled) {
+        triggerHeartbeatAudio(1.1);
+      }
+    });
+
+    // Animation Timing & Pulse Calculations
+    let startTime = performance.now();
+    let lastBeatTime = 0;
+
+    function render(now) {
+      const elapsed = (now - startTime) / 1000;
+
+      // Heartbeat pulse math (Systole and Diastole double-bump rhythm)
+      const beatInterval = 60 / bpm;
+      const beatPhase = (elapsed % beatInterval) / beatInterval;
+
+      let pulseScale = 1.0;
+      let isBeatingCycle = false;
+
+      // Double beat curve (0 to 1)
+      if (beatPhase < 0.15) {
+        // First main bump (Lub)
+        pulseScale = 1.0 + Math.sin((beatPhase / 0.15) * Math.PI) * 0.18;
+        isBeatingCycle = true;
+      } else if (beatPhase >= 0.18 && beatPhase < 0.33) {
+        // Second smaller bump (Dub)
+        pulseScale = 1.0 + Math.sin(((beatPhase - 0.18) / 0.15) * Math.PI) * 0.10;
+        isBeatingCycle = true;
+      }
+
+      // Trigger Web Audio heartbeat sound on first bump
+      if (audioEnabled && beatPhase < 0.05 && (now - lastBeatTime) > (beatInterval * 800)) {
+        triggerHeartbeatAudio(1.0);
+        lastBeatTime = now;
+      }
+
+      // Clear Canvas with subtle trail fade for glow motion
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+      ctx.fillRect(0, 0, width, height);
+
+      const activePalette = themePalettes[theme];
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // 1. Draw Background Floating Sparkles
+      ctx.save();
+      for (let i = 0; i < bgParticles.length; i++) {
+        let p = bgParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.y < 0) {
+          p.y = height + 10;
+          p.x = Math.random() * width;
+        }
+
+        ctx.fillStyle = activePalette.glow + p.alpha + ')';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // 2. Draw Heart Particles
+      ctx.save();
+      ctx.translate(centerX, centerY);
+
+      for (let i = 0; i < heartParticles.length; i++) {
+        let p = heartParticles[i];
+
+        // Apply pulse expansion relative to center
+        const targetX = p.baseX * pulseScale;
+        const targetY = p.baseY * pulseScale;
+
+        // Smooth particle drift around target position
+        p.x += (targetX - p.x) * 0.12 + p.vx * 0.2;
+        p.y += (targetY - p.y) * 0.12 + p.vy * 0.2;
+
+        // Color variation based on depth and position
+        const colorRatio = Math.sin(p.t + elapsed) * 0.5 + 0.5;
+        const particleColor = colorRatio > 0.4 ? activePalette.primary : activePalette.secondary;
+
+        ctx.fillStyle = particleColor;
+        ctx.globalAlpha = p.alpha * (0.7 + pulseScale * 0.3);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (0.8 + pulseScale * 0.3), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // 3. Draw Click Burst Particles
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      for (let i = burstParticles.length - 1; i >= 0; i--) {
+        let bp = burstParticles[i];
+        bp.x += bp.vx;
+        bp.y += bp.vy;
+        bp.alpha -= bp.decay;
+
+        if (bp.alpha <= 0) {
+          burstParticles.splice(i, 1);
+          continue;
+        }
+
+        ctx.fillStyle = bp.color;
+        ctx.globalAlpha = bp.alpha;
+        ctx.beginPath();
+        ctx.arc(bp.x, bp.y, bp.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      requestAnimationFrame(render);
+    }
+
+    requestAnimationFrame(render);
+
+    // Audio Synthesizer (Realistic Heartbeat "Lub-Dub")
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function triggerHeartbeatAudio(volumeMultiplier = 1.0) {
+      if (!audioCtx) return;
+
+      try {
+        const now = audioCtx.currentTime;
+
+        // --- First Beat ("Lub") ---
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        const filter1 = audioCtx.createBiquadFilter();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(100, now);
+        osc1.frequency.exponentialRampToValueAtTime(35, now + 0.12);
+
+        filter1.type = 'lowpass';
+        filter1.frequency.setValueAtTime(160, now);
+
+        gain1.gain.setValueAtTime(0.001, now);
+        gain1.gain.linearRampToValueAtTime(0.5 * volumeMultiplier, now + 0.03);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+        osc1.connect(filter1);
+        filter1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+
+        osc1.start(now);
+        osc1.stop(now + 0.16);
+
+        // --- Second Beat ("Dub") ---
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        const filter2 = audioCtx.createBiquadFilter();
+
+        const dubTime = now + 0.16;
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(120, dubTime);
+        osc2.frequency.exponentialRampToValueAtTime(40, dubTime + 0.10);
+
+        filter2.type = 'lowpass';
+        filter2.frequency.setValueAtTime(180, dubTime);
+
+        gain2.gain.setValueAtTime(0.001, dubTime);
+        gain2.gain.linearRampToValueAtTime(0.35 * volumeMultiplier, dubTime + 0.02);
+        gain2.gain.exponentialRampToValueAtTime(0.001, dubTime + 0.12);
+
+        osc2.connect(filter2);
+        filter2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+
+        osc2.start(dubTime);
+        osc2.stop(dubTime + 0.14);
+
+      } catch (err) {
+        console.error('Erro ao reproduzir som:', err);
+      }
+    }
+
+    // Audio Toggle Handler
+    const audioBtn = document.getElementById('audio-toggle');
+    const audioIcon = document.getElementById('audio-icon');
+
+    audioBtn.addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      if (audioEnabled) {
+        initAudio();
+        audioBtn.classList.add('active');
+        audioIcon.textContent = '🔊';
+        triggerHeartbeatAudio(1.0);
+      } else {
+        audioBtn.classList.remove('active');
+        audioIcon.textContent = '🔇';
+      }
+    });
+
+    // BPM Slider Listener
+    const bpmSlider = document.getElementById('bpm-slider');
+    const bpmDisplay = document.getElementById('bpm-value');
+
+    bpmSlider.addEventListener('input', (e) => {
+      bpm = parseInt(e.target.value, 10);
+      bpmDisplay.textContent = `${bpm} BPM`;
+    });
+
+    // Theme Switcher Listener
+    const themeSwatches = document.querySelectorAll('.swatch');
+    themeSwatches.forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        themeSwatches.forEach(s => {
+          s.classList.remove('selected');
+          s.setAttribute('aria-checked', 'false');
+        });
+        swatch.classList.add('selected');
+        swatch.setAttribute('aria-checked', 'true');
+
+        theme = swatch.dataset.theme;
+        document.body.setAttribute('data-theme', theme);
+      });
+    });
+
+    // Fullscreen Toggle
+    const fullscreenBtn = document.getElementById('fullscreen-toggle');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    // Modal Dialog Controls
+    const modalOverlay = document.getElementById('modal-overlay');
+    const openModalBtn = document.getElementById('open-modal-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const saveModalBtn = document.getElementById('save-modal-btn');
+
+    const inputHeading = document.getElementById('input-heading');
+    const inputSubtext = document.getElementById('input-subtext');
+    const cardHeading = document.getElementById('card-heading');
+    const cardSubtext = document.getElementById('card-subtext');
+
+    openModalBtn.addEventListener('click', () => {
+      modalOverlay.classList.add('open');
+      modalOverlay.setAttribute('aria-hidden', 'false');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      modalOverlay.classList.remove('open');
+      modalOverlay.setAttribute('aria-hidden', 'true');
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        modalOverlay.classList.remove('open');
+        modalOverlay.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    saveModalBtn.addEventListener('click', () => {
+      if (inputHeading.value.trim() !== '') {
+        cardHeading.textContent = inputHeading.value.trim();
+      }
+      if (inputSubtext.value.trim() !== '') {
+        cardSubtext.textContent = inputSubtext.value.trim();
+      }
+      modalOverlay.classList.remove('open');
+      modalOverlay.setAttribute('aria-hidden', 'true');
+    });
+
+  </script>
+</body>
+</html>
