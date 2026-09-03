@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Jogo da Cobrinha</title>
+
+    <link rel="stylesheet" href="estilo.css">
+</head>
+
+<body>
+
+    <main class="game">
+
+        <h1>🐍 Jogo da Cobrinha</h1>
+
+
+        <!-- PLACAR -->
+
+        <div class="placar">
+
+            <div>
+                <span>Pontuação</span>
+                <strong id="pontuacao">0</strong>
+            </div>
+
+            <div>
+                <span>Meta</span>
+                <strong>10</strong>
+            </div>
+
+        </div>
+
+
+        <!-- TABULEIRO -->
+
+        <div id="tabuleiro" class="tabuleiro">
+
+            <div id="cobra"></div>
+
+            <div id="comida" class="comida"></div>
+
+        </div>
+
+
+        <!-- BOTÕES -->
+
+        <div class="botoes">
+
+            <button id="botaoPausa">
+                ⏸️ Pausar
+            </button>
+
+            <button id="botaoReiniciar">
+                🔄 Reiniciar
+            </button>
+
+        </div>
+
+
+        <!-- CONTROLES -->
+
+        <div class="controles">
+
+            <button id="cima">↑</button>
+
+            <div>
+
+                <button id="esquerda">←</button>
+
+                <button id="baixo">↓</button>
+
+                <button id="direita">→</button>
+
+            </div>
+
+        </div>
+
+
+        <p>
+            Use as setas do teclado para controlar a cobra
+        </p>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
